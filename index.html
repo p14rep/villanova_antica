@@ -10,6 +10,8 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-groupedlayercontrol@0.6.1/dist/leaflet.groupedlayercontrol.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/leaflet-groupedlayercontrol@0.6.1/dist/leaflet.groupedlayercontrol.min.js"></script>
+<script src="https://unpkg.com/@ngageoint/geopackage/dist/geopackage.min.js"></script>
+<script src="https://unpkg.com/leaflet-textpath@1.2.3/leaflet.textpath.js"></script>
 <style>
   html, body {
     margin: 0;
@@ -80,6 +82,53 @@ const sfondoBDTRE = L.tileLayer.wms('https://geomap.reteunitaria.piemonte.it/map
     version: '1.3.0',
     attribution: 'Regione Piemonte'
   });
+
+// ============================
+// LAYER GPKG - STRADE ANTICHE
+// ============================
+// Indica dove trovare il file .wasm necessario per leggere il gpkg nel browser
+window.GeoPackage.setSqljsWasmLocateFile(file => 'https://unpkg.com/@ngageoint/geopackage/dist/' + file);
+
+// Gruppo vuoto che conterrà le linee delle strade una volta caricate
+const stradeAnticheLayer = L.layerGroup();
+
+fetch('data/strade.gpkg')
+  .then(response => response.arrayBuffer())
+  .then(arrayBuffer => window.GeoPackage.GeoPackageAPI.open(new Uint8Array(arrayBuffer)))
+  .then(geoPackage => {
+    const featureDao = geoPackage.getFeatureDao('strade');
+    const iterator = featureDao.queryForEach();
+
+    for (const row of iterator) {
+      const feature = featureDao.getRow(row);
+      const geometry = feature.geometry;
+      if (!geometry) continue;
+
+      const geoJsonGeom = geometry.geometry.toGeoJSON();
+      const nomeStrada = feature.values['nome_strada'] || '';
+
+      // Disegna la linea sulla mappa
+      const lineLayer = L.geoJSON(geoJsonGeom, {
+        style: { color: '#c0392b', weight: 3 }
+      });
+
+      // Applica il testo curvo lungo la linea, se il campo non è vuoto
+      lineLayer.eachLayer(function (layer) {
+        if (nomeStrada) {
+          layer.setText(nomeStrada, {
+            repeat: false,
+            center: true,
+            offset: -6,
+            attributes: { fill: '#c0392b', 'font-size': '13', 'font-weight': 'bold' }
+          });
+        }
+      });
+
+      lineLayer.addTo(stradeAnticheLayer);
+    }
+  })
+  .catch(err => console.error('Errore nel caricamento del GeoPackage:', err));
+  
   // ============================
   // 3. PANNELLO CHECKBOX LAYER
   // ============================
@@ -98,11 +147,13 @@ const sfondoBDTRE = L.tileLayer.wms('https://geomap.reteunitaria.piemonte.it/map
           "Confini amministrativi (Limiti comunali)": limitiComunali
       },
       "Dati di progetto": {
-          // "Strade antiche": stradeAnticheLayer  <- arriverà al Passo 4
+          "Strade antiche": stradeAnticheLayer
       }
   };
 
 L.control.groupedLayers(baseMaps, groupedOverlays, { collapsed: false, groupCheckboxes: false }).addTo(map);
+stradeAnticheLayer.addTo(map);
+  
 </script>
 </body>
 </html>

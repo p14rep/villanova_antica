@@ -78,15 +78,15 @@
   // ============================
   // baseMaps = layer di sfondo (mutuamente esclusivi, radio button)
   const baseMaps = {
-    "OpenStreetMap": osmBase
+    "Sfondo Cartografico Regione Piemonte": sfondoBDTRE,    
   };
 
   // overlayMaps = layer sovrapponibili con checkbox indipendenti
   // Qui aggiungeremo anche il layer GPKG (strade antiche) al Passo 4
   const overlayMaps = {
+    "Satellite (Ortofoto AGEA 2024)": ortofotoAGEA
     "Originali di impianto catastali": catastoOI,
-    "Sfondo Cartografico Regione Piemonte": sfondoBDTRE,
-    "Ortofoto AGEA 2024": ortofotoAGEA
+    "OpenStreetMap": osmBase
     // "Strade antiche": stradeAnticheLayer  <- arriverà al Passo 4
   };
 

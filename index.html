@@ -35,7 +35,7 @@
   // 1. INIZIALIZZAZIONE MAPPA
   // ============================
   // Coordinate di partenza: da modificare con il centro della zona di interesse
-  const map = L.map('map').setView([44.9119, 7.921], 13);
+  const map = L.map('map').setView([44.9409, 7.9545], 13);
 
   // Layer: OpenStreetMap - gratuito e open source
   const osmBase = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -103,5 +103,6 @@ const sfondoBDTRE = L.tileLayer.wms('https://geomap.reteunitaria.piemonte.it/map
   };
 
 L.control.groupedLayers(baseMaps, groupedOverlays, { collapsed: false, groupCheckboxes: false }).addTo(map);
+</script>
 </body>
 </html>

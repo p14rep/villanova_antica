@@ -33,15 +33,14 @@
   // ============================
   // 1. INIZIALIZZAZIONE MAPPA
   // ============================
-  // Coordinate di partenza: da modificare con il centro della tua zona di interesse
-  // Per ora uso un punto generico in Piemonte (Torino) come placeholder
+  // Coordinate di partenza: da modificare con il centro della zona di interesse
   const map = L.map('map').setView([44.9119, 7.921], 13);
 
-  // Layer di base (sfondo cartografico), OpenStreetMap - gratuito e open source
+  // Layer: OpenStreetMap - gratuito e open source
   const osmBase = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19
-  }).addTo(map);
+  });
 
   // ============================
   // 2. LAYER WMS - REGIONE PIEMONTE
@@ -55,14 +54,14 @@
     attribution: 'Regione Piemonte - CSI Piemonte'
   });
 
-  // Layer: Sfondo Cartografico Regione Piemonte (BDTRE)
+  // Layer di base (sfondo cartografico): Sfondo Cartografico Regione Piemonte (BDTRE)
   const sfondoBDTRE = L.tileLayer.wms('https://geomap.reteunitaria.piemonte.it/mapproxy/service', {
     layers: 'regp_sfondo_bdtre',
     format: 'image/png',
     transparent: true,
     version: '1.3.0',
     attribution: 'Regione Piemonte'
-  });
+  }).addTo(map);
 
   // Layer: Ortofoto AGEA 2024
   const ortofotoAGEA = L.tileLayer.wms('https://opengis.csi.it/mp/regp_agea_2024/service', {
@@ -78,15 +77,16 @@
   // ============================
   // baseMaps = layer di sfondo (mutuamente esclusivi, radio button)
   const baseMaps = {
-    "Sfondo Cartografico Regione Piemonte": sfondoBDTRE,    
+    "Sfondo Cartografico Regione Piemonte": sfondoBDTRE,
+    "OpenStreetMap": osmBase
   };
 
   // overlayMaps = layer sovrapponibili con checkbox indipendenti
   // Qui aggiungeremo anche il layer GPKG (strade antiche) al Passo 4
   const overlayMaps = {
-    "Satellite (Ortofoto AGEA 2024)": ortofotoAGEA
-    "Originali di impianto catastali": catastoOI,
-    "OpenStreetMap": osmBase
+    "Satellite (Ortofoto AGEA 2024)": ortofotoAGEA,
+    "Originali di impianto catastali": catastoOI
+    
     // "Strade antiche": stradeAnticheLayer  <- arriverà al Passo 4
   };
 

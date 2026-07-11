@@ -38,7 +38,7 @@
   // ============================
   // Coordinate di partenza: da modificare con il centro della zona di interesse
   const map = L.map('map').setView([44.9409, 7.9545], 13);
-
+  L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map);
   // Layer: OpenStreetMap - gratuito e open source
   const osmBase = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -86,11 +86,15 @@ const sfondoBDTRE = L.tileLayer.wms('https://geomap.reteunitaria.piemonte.it/map
 // ============================
 // LAYER GPKG - STRADE ANTICHE
 // ============================
-// Indica dove trovare il file .wasm necessario per leggere il gpkg nel browser
 window.GeoPackage.setSqljsWasmLocateFile(file => 'https://unpkg.com/@ngageoint/geopackage/dist/' + file);
 
-// Gruppo vuoto che conterrà le linee delle strade una volta caricate
 const stradeAnticheLayer = L.layerGroup();
+
+// Zoom minimo a partire dal quale mostrare le etichette con il nome della strada
+const ZOOM_MINIMO_ETICHETTE = 15;
+
+// Teniamo traccia di ogni linea e del suo nome, per poter accendere/spegnere il testo
+const stradeConEtichetta = [];
 
 fetch('data/strade.gpkg')
   .then(response => response.arrayBuffer())
@@ -107,27 +111,43 @@ fetch('data/strade.gpkg')
       const geoJsonGeom = geometry.geometry.toGeoJSON();
       const nomeStrada = feature.values['nome_strada'] || '';
 
-      // Disegna la linea sulla mappa
       const lineLayer = L.geoJSON(geoJsonGeom, {
         style: { color: '#c0392b', weight: 3 }
       });
 
-      // Applica il testo curvo lungo la linea, se il campo non è vuoto
       lineLayer.eachLayer(function (layer) {
         if (nomeStrada) {
-          layer.setText(nomeStrada, {
-            repeat: false,
-            center: true,
-            offset: -6,
-            attributes: { fill: '#c0392b', 'font-size': '13', 'font-weight': 'bold' }
-          });
+          stradeConEtichetta.push({ layer: layer, nome: nomeStrada });
         }
       });
 
       lineLayer.addTo(stradeAnticheLayer);
     }
+
+    // Applica lo stato iniziale delle etichette in base allo zoom corrente
+    aggiornaEtichette();
   })
   .catch(err => console.error('Errore nel caricamento del GeoPackage:', err));
+
+// Accende o spegne le etichette in base al livello di zoom attuale della mappa
+function aggiornaEtichette() {
+  const zoomAttuale = map.getZoom();
+  stradeConEtichetta.forEach(function (item) {
+    if (zoomAttuale >= ZOOM_MINIMO_ETICHETTE) {
+      item.layer.setText(item.nome, {
+        repeat: false,
+        center: true,
+        offset: -6,
+        attributes: { fill: '#c0392b', 'font-size': '13', 'font-weight': 'bold' }
+      });
+    } else {
+      item.layer.setText(null);
+    }
+  });
+}
+
+// Richiama la funzione ogni volta che l'utente cambia zoom
+map.on('zoomend', aggiornaEtichette);
   
   // ============================
   // 3. PANNELLO CHECKBOX LAYER

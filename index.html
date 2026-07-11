@@ -1,2 +1,98 @@
-<h1>Test</h1>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Viewer GIS - Strade Antiche</title>
 
+<!-- Libreria Leaflet (CSS + JS) via CDN, nessuna installazione richiesta -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+  #map {
+    width: 100%;
+    height: 100vh;
+  }
+  /* Un po' di stile in più per il pannello dei layer generato da Leaflet */
+  .leaflet-control-layers {
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script>
+  // ============================
+  // 1. INIZIALIZZAZIONE MAPPA
+  // ============================
+  // Coordinate di partenza: da modificare con il centro della tua zona di interesse
+  // Per ora uso un punto generico in Piemonte (Torino) come placeholder
+  const map = L.map('map').setView([45.0703, 7.6869], 12);
+
+  // Layer di base (sfondo cartografico), OpenStreetMap - gratuito e open source
+  const osmBase = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19
+  }).addTo(map);
+
+  // ============================
+  // 2. LAYER WMS - REGIONE PIEMONTE
+  // ============================
+  // Layer: Originali di impianto catastali
+  const catastoOI = L.tileLayer.wms('https://wmtscatasto-gis.csi.it/mapproxy/service', {
+    layers: 'regp_catasto_oi',
+    format: 'image/png',
+    transparent: true,
+    version: '1.3.0',
+    attribution: 'Regione Piemonte - CSI Piemonte'
+  });
+
+  // Layer: Sfondo Cartografico Regione Piemonte (BDTRE)
+  const sfondoBDTRE = L.tileLayer.wms('https://geomap.reteunitaria.piemonte.it/mapproxy/service', {
+    layers: 'regp_sfondo_bdtre',
+    format: 'image/png',
+    transparent: true,
+    version: '1.3.0',
+    attribution: 'Regione Piemonte'
+  });
+
+  // Layer: Ortofoto AGEA 2024
+  const ortofotoAGEA = L.tileLayer.wms('https://opengis.csi.it/mp/regp_agea_2024/service', {
+    layers: 'regp_agea_2024',
+    format: 'image/png',
+    transparent: true,
+    version: '1.3.0',
+    attribution: 'AGEA / Regione Piemonte - CSI Piemonte'
+  });
+
+  // ============================
+  // 3. PANNELLO CHECKBOX LAYER
+  // ============================
+  // baseMaps = layer di sfondo (mutuamente esclusivi, radio button)
+  const baseMaps = {
+    "OpenStreetMap": osmBase
+  };
+
+  // overlayMaps = layer sovrapponibili con checkbox indipendenti
+  // Qui aggiungeremo anche il layer GPKG (strade antiche) al Passo 4
+  const overlayMaps = {
+    "Originali di impianto catastali": catastoOI,
+    "Sfondo Cartografico Regione Piemonte": sfondoBDTRE,
+    "Ortofoto AGEA 2024": ortofotoAGEA
+    // "Strade antiche": stradeAnticheLayer  <- arriverà al Passo 4
+  };
+
+  L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
+
+</script>
+
+</body>
+</html>

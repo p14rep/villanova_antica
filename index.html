@@ -8,7 +8,8 @@
 <!-- Libreria Leaflet (CSS + JS) via CDN, nessuna installazione richiesta -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-groupedlayercontrol@0.6.1/dist/leaflet.groupedlayercontrol.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/leaflet-groupedlayercontrol@0.6.1/dist/leaflet.groupedlayercontrol.min.js"></script>
 <style>
   html, body {
     margin: 0;
@@ -83,25 +84,27 @@ const sfondoBDTRE = L.tileLayer.wms('https://geomap.reteunitaria.piemonte.it/map
   // 3. PANNELLO CHECKBOX LAYER
   // ============================
   // baseMaps = layer di sfondo (mutuamente esclusivi, radio button)
-  const baseMaps = {
-    "Sfondo Cartografico Regione Piemonte": sfondoBDTRE,
-    "OpenStreetMap": osmBase
+  const groupedBaseMaps = {
+    "Sfondo cartografico": {
+        "Regione Piemonte": sfondoBDTRE,
+        "OpenStreetMap": osmBase
+    }
   };
 
-  // overlayMaps = layer sovrapponibili con checkbox indipendenti
-  // Qui aggiungeremo anche il layer GPKG (strade antiche) al Passo 4
-  const overlayMaps = {
-    "Satellite (Ortofoto AGEA 2024)": ortofotoAGEA,
-    "Originali di impianto catastali": catastoOI,
-    "Confini amministrativi (Limiti comunali 2026)": limitiComunali
 
-    
-    // "Strade antiche": stradeAnticheLayer  <- arriverà al Passo 4
+  // Layers
+  const groupedOverlays = {
+      "Livelli": {
+          "Satellite (Ortofoto AGEA 2024)": ortofotoAGEA,
+          "Originali di impianto catastali": catastoOI,
+          "Confini amministrativi (Limiti comunali)": limitiComunali
+      },
+      "Dati di progetto": {
+          // "Strade antiche": stradeAnticheLayer  <- arriverà al Passo 4
+      }
   };
 
-  L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
-
-</script>
+L.control.groupedLayers(groupedBaseMaps, groupedOverlays, { collapsed: false, groupCheckboxes: false }).addTo(map);</script>
 
 </body>
 </html>

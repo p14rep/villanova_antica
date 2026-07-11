@@ -84,11 +84,9 @@ const sfondoBDTRE = L.tileLayer.wms('https://geomap.reteunitaria.piemonte.it/map
   // 3. PANNELLO CHECKBOX LAYER
   // ============================
   // baseMaps = layer di sfondo (mutuamente esclusivi, radio button)
-  const groupedBaseMaps = {
-    "Sfondo cartografico": {
-        "Regione Piemonte": sfondoBDTRE,
-        "OpenStreetMap": osmBase
-    }
+  const baseMaps = {
+      "Sfondo cartografico - Regione Piemonte": sfondoBDTRE,
+      "Sfondo cartografico - OpenStreetMap": osmBase
   };
 
 
@@ -104,7 +102,6 @@ const sfondoBDTRE = L.tileLayer.wms('https://geomap.reteunitaria.piemonte.it/map
       }
   };
 
-L.control.groupedLayers(groupedBaseMaps, groupedOverlays, { collapsed: false, groupCheckboxes: false }).addTo(map);</script>
-
+L.control.groupedLayers(baseMaps, groupedOverlays, { collapsed: false, groupCheckboxes: false }).addTo(map);
 </body>
 </html>

@@ -133,6 +133,9 @@ fetch('data/strade.gpkg')
 function aggiornaEtichette() {
   const zoomAttuale = map.getZoom();
   stradeConEtichetta.forEach(function (item) {
+    // Rimuovi sempre il testo esistente prima di eventualmente ridisegnarlo
+    item.layer.setText(null);
+
     if (zoomAttuale >= ZOOM_MINIMO_ETICHETTE) {
       item.layer.setText(item.nome, {
         repeat: false,
@@ -140,8 +143,6 @@ function aggiornaEtichette() {
         offset: -6,
         attributes: { fill: '#c0392b', 'font-size': '13', 'font-weight': 'bold' }
       });
-    } else {
-      item.layer.setText(null);
     }
   });
 }

@@ -12,6 +12,8 @@
 <script src="https://cdn.jsdelivr.net/npm/leaflet-groupedlayercontrol@0.6.1/dist/leaflet.groupedlayercontrol.min.js"></script>
 <script src="https://unpkg.com/@ngageoint/geopackage/dist/geopackage.min.js"></script>
 <script src="https://unpkg.com/leaflet-textpath@1.2.3/leaflet.textpath.js"></script>
+<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
 <style>
   html, body {
     margin: 0;
@@ -111,17 +113,25 @@ fetch('data/strade.gpkg')
       const geoJsonGeom = geometry.geometry.toGeoJSON();
       const nomeStrada = feature.values['nome_strada'] || '';
 
-      const lineLayer = L.geoJSON(geoJsonGeom, {
-        style: { color: '#c0392b', weight: 3 }
+      // Linea visibile, con la geometria originale precisa
+    const lineLayer = L.geoJSON(geoJsonGeom, {
+      style: { color: '#c0392b', weight: 3 }
+    });
+    lineLayer.addTo(stradeAnticheLayer);
+    
+    // Linea invisibile e semplificata, usata solo come binario per il testo
+    if (nomeStrada) {
+      const geomSemplificata = turf.simplify(geoJsonGeom, { tolerance: 0.0003, highQuality: true });
+    
+      const linePerTesto = L.geoJSON(geomSemplificata, {
+        style: { opacity: 0, weight: 0 }
       });
-
-      lineLayer.eachLayer(function (layer) {
-        if (nomeStrada) {
-          stradeConEtichetta.push({ layer: layer, nome: nomeStrada });
-        }
+    
+      linePerTesto.eachLayer(function (layer) {
+        stradeConEtichetta.push({ layer: layer, nome: nomeStrada });
       });
-
-      lineLayer.addTo(stradeAnticheLayer);
+    
+      linePerTesto.addTo(stradeAnticheLayer);
     }
 
     // Applica lo stato iniziale delle etichette in base allo zoom corrente

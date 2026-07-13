@@ -26,12 +26,46 @@
   .leaflet-control-layers {
     font-size: 14px;
   }
+  .pannello-legenda {
+  position: absolute;
+  bottom: 20px;
+  left: 10px;
+  z-index: 1000;
+  background: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+  font-size: 13px;
+  max-width: 220px;
+  }
+  .pannello-legenda h4 {
+    margin: 0 0 6px 0;
+    font-size: 13px;
+  }
+  .voce-legenda {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .voce-legenda .trattino {
+    width: 20px;
+    height: 3px;
+    margin-right: 6px;
+    flex-shrink: 0;
+  }
+  .voce-legenda img {
+    max-width: 200px;
+    display: block;
+  }
 </style>
 </head>
 <body>
 
 <div id="map"></div>
-
+<div id="legenda" class="pannello-legenda" style="display:none;">
+  <h4>Legenda</h4>
+  <div id="legenda-contenuto"></div>
+</div>
 <script>
   // ============================
   // 1. INIZIALIZZAZIONE MAPPA
@@ -172,8 +206,55 @@ map.on('zoomend', aggiornaEtichette);
       }
   };
 
-L.control.groupedLayers(baseMaps, groupedOverlays, { collapsed: false, groupCheckboxes: false }).addTo(map);
+// Pannello livelli: aperto su desktop, chiuso su mobile
+const isMobile = window.innerWidth < 768;
+L.control.groupedLayers(baseMaps, groupedOverlays, { collapsed: isMobile, groupCheckboxes: false }).addTo(map);
 stradeAnticheLayer.addTo(map);
+
+// ============================
+// LEGENDA DINAMICA
+// ============================
+const legendaConfig = {
+  "Confini amministrativi (Limiti comunali 2026)": { colore: '#8e44ad', tipo: 'linea' },
+  "Strade antiche": { colore: '#c0392b', tipo: 'linea' }
+};
+
+const legendaDiv = document.getElementById('legenda');
+const legendaContenuto = document.getElementById('legenda-contenuto');
+const vociAttive = {};
+
+
+function aggiornaVisualizzazioneLegenda() {
+  const nomiVoci = Object.keys(vociAttive);
+  if (nomiVoci.length === 0) {
+    legendaDiv.style.display = 'none';
+    return;
+  }
+  legendaDiv.style.display = 'block';
+  legendaContenuto.innerHTML = '';
+  nomiVoci.forEach(function (nome) {
+    legendaContenuto.innerHTML += vociAttive[nome];
+  });
+}
+
+// Overlay: aggiunta/rimozione voci in base a checkbox
+map.on('overlayadd', function (e) {
+  const config = legendaConfig[e.name];
+  if (!config) return;
+  vociAttive[e.name] = `<div class="voce-legenda"><span class="trattino" style="background:${config.colore};"></span>${e.name}</div>`;
+  aggiornaVisualizzazioneLegenda();
+});
+
+map.on('overlayremove', function (e) {
+  delete vociAttive[e.name];
+  aggiornaVisualizzazioneLegenda();
+});
+
+
+
+// Stato iniziale: attiva la legenda per i layer già accesi all'apertura
+vociAttive['Strade antiche'] = `<div class="voce-legenda"><span class="trattino" style="background:${legendaConfig['Strade antiche'].colore};"></span>Strade antiche</div>`;
+aggiornaVisualizzazioneLegenda();
   
 </script>
 </body>
